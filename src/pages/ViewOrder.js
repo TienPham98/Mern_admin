@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
-import { Table } from "antd";
-import { useDispatch, useSelector } from "react-redux";
-import { BiEdit } from "react-icons/bi";
-import { AiFillDelete } from "react-icons/ai";
-import { Link, useLocation } from "react-router-dom";
-import { getOrderByUser } from "../features/auth/authSlice";
+import React, {useEffect} from "react";
+import {Table} from "antd";
+import {useDispatch, useSelector} from "react-redux";
+import {BiEdit} from "react-icons/bi";
+import {AiFillDelete} from "react-icons/ai";
+import {Link, useLocation} from "react-router-dom";
+import {getOrderByOrderId, getOrderByUser} from "../features/auth/authSlice";
 
 const columns = [
   {
@@ -12,28 +12,20 @@ const columns = [
     dataIndex: "key",
   },
   {
-    title: "Product Name",
-    dataIndex: "name",
+    title: "Sản phẩm",
+    dataIndex: "title",
   },
   {
-    title: "Brand",
-    dataIndex: "brand",
+    title: "số lượng",
+    dataIndex: "quantity",
   },
   {
-    title: "Count",
-    dataIndex: "count",
+    title: "Đơn giá",
+    dataIndex: "price",
   },
   {
-    title: "Color",
-    dataIndex: "color",
-  },
-  {
-    title: "Amount",
-    dataIndex: "amount",
-  },
-  {
-    title: "Date",
-    dataIndex: "date",
+    title: "Tổng cộng",
+    dataIndex: "totalPrice",
   },
   {
     title: "Action",
@@ -43,44 +35,78 @@ const columns = [
 
 const ViewOrder = () => {
   const location = useLocation();
-  const userId = location.pathname.split("/")[3];
+  const orderId = location.pathname.split("/")[3];
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getOrderByUser(userId));
-  }, [dispatch, userId]);
+    dispatch(getOrderByOrderId(orderId));
+  }, [dispatch, orderId]);
 
-  const orderState = useSelector((state) => state.auth.orderbyuser.products);
+  const orderState = useSelector((state) => state.auth?.orderId);
+  const shippingAddress = useSelector(
+    (state) => state.auth?.orderId?.shippingInfo
+  );
 
+  let total = 0;
   const data1 = [];
-  for (let i = 0; i < orderState.length; i++) {
-    const { product, count } = orderState[i];
+  for (let i = 0; i < orderState?.orderItems.length; i++) {
+    const {title, quantity, price} = orderState?.orderItems[i];
     data1.push({
       key: i + 1,
-      name: product.title,
-      brand: product.brand,
-      count,
-      amount: product.price,
-      color: product.color,
-      date: product.createdAt,
-      action: (
-        <>
-          <Link to="/" className="fs-3 text-danger">
-            <BiEdit />
-          </Link>
-          <Link className="ms-3 fs-3 text-danger" to="/">
-            <AiFillDelete />
-          </Link>
-        </>
-      ),
+      title: title,
+      quantity: quantity,
+      price: price.toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }),
+      totalPrice: (quantity * price).toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }),
     });
+    total += quantity * price;
   }
 
   return (
     <div>
-      <h3 className="mb-4 title">View Order</h3>
-      <div>
+      <h3 className="mb-4 title">Xem thông tin đơn hàng</h3>
+      {shippingAddress && (
+        <div>
+          <h4>Thông tin người mua:</h4>
+          <Table
+            columns={[
+              {title: "Người mua", dataIndex: "attribute", width: "30%"},
+              {title: "Thông tin", dataIndex: "value", width: "70%"},
+            ]}
+            dataSource={[
+              {attribute: "Tên", value: shippingAddress?.name},
+              {attribute: "Số điện thoại", value: shippingAddress?.phone},
+              {attribute: "Địa chỉ nhà", value: shippingAddress?.address},
+              {attribute: "Phường/ xã", value: shippingAddress?.ward},
+              {attribute: "Quận/ huyện", value: shippingAddress?.district},
+              {attribute: "Tỉnh/ thành phố", value: shippingAddress?.city},
+              {
+                attribute: "Phương thức thanh toán",
+                value:
+                  shippingAddress.paymentMethod === "cash"
+                    ? "Tiền mặt"
+                    : "Chuyển khoản",
+              },
+            ]}
+            pagination={false}
+          />
+        </div>
+      )}
+      <div className="my-4">
+        <h4>Sản phẩm mua:</h4>
         <Table columns={columns} dataSource={data1} />
+        <h6 className="text-center">
+          Tổng cộng tiền hàng đã mua:{" "}
+          {total.toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          })}
+        </h6>
       </div>
     </div>
   );

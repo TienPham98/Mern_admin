@@ -1,11 +1,11 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 import authService from "./authService";
 
-const getUserfromLocalStorage = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user"))
+const getUserFromsessionStorage = sessionStorage.getItem("user")
+  ? JSON.parse(sessionStorage.getItem("user"))
   : null;
 const initialState = {
-  user: getUserfromLocalStorage,
+  user: getUserFromsessionStorage,
   orders: [],
   isError: false,
   isLoading: false,
@@ -38,6 +38,17 @@ export const getOrderByUser = createAsyncThunk(
   async (id, thunkAPI) => {
     try {
       return await authService.getOrder(id);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const getOrderByOrderId = createAsyncThunk(
+  "order/get-order-orderid",
+  async (id, thunkAPI) => {
+    try {
+      return await authService.getOrderById(id);
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
     }
@@ -93,6 +104,22 @@ export const authSlice = createSlice({
         state.message = "success";
       })
       .addCase(getOrderByUser.rejected, (state, action) => {
+        state.isError = true;
+        state.isSuccess = false;
+        state.message = action.error;
+        state.isLoading = false;
+      })
+      .addCase(getOrderByOrderId.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getOrderByOrderId.fulfilled, (state, action) => {
+        state.isError = false;
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.orderId = action.payload;
+        state.message = "success";
+      })
+      .addCase(getOrderByOrderId.rejected, (state, action) => {
         state.isError = true;
         state.isSuccess = false;
         state.message = action.error;

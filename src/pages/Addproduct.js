@@ -9,7 +9,6 @@ import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { getBrands } from "../features/brand/brandSlice";
 import { getCategories } from "../features/pcategory/pcategorySlice";
-import { getColors } from "../features/color/colorSlice";
 import { Select } from "antd";
 import Dropzone from "react-dropzone";
 import { delImg, uploadImg } from "../features/upload/uploadSlice";
@@ -21,28 +20,27 @@ let schema = yup.object().shape({
   brand: yup.string().required("Brand is Required"),
   category: yup.string().required("Category is Required"),
   tags: yup.string().required("Tag is Required"),
-  color: yup
-    .array()
-    .min(1, "Pick at least one color")
-    .required("Color is Required"),
+  // color: yup
+  //   .array()
+  //   .min(1, "Pick at least one color")
+  //   .required("Color is Required"),
   quantity: yup.number().required("Quantity is Required"),
 });
 
 const Addproduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [color, setColor] = useState([]);
+  // const [color, setColor] = useState([]);
   const [images, setImages] = useState([]);
-  console.log(color);
   useEffect(() => {
     dispatch(getBrands());
     dispatch(getCategories());
-    dispatch(getColors());
+    // dispatch(getColors());
   }, []);
 
   const brandState = useSelector((state) => state.brand.brands);
   const catState = useSelector((state) => state.pCategory.pCategories);
-  const colorState = useSelector((state) => state.color.colors);
+  // const colorState = useSelector((state) => state.color.colors);
   const imgState = useSelector((state) => state.upload.images);
   const newProduct = useSelector((state) => state.product);
   const { isSuccess, isError, isLoading, createdProduct } = newProduct;
@@ -54,13 +52,13 @@ const Addproduct = () => {
       toast.error("Something Went Wrong!");
     }
   }, [isSuccess, isError, isLoading]);
-  const coloropt = [];
-  colorState.forEach((i) => {
-    coloropt.push({
-      label: i.title,
-      value: i._id,
-    });
-  });
+  // const coloropt = [];
+  // colorState.forEach((i) => {
+  //   coloropt.push({
+  //     label: i.title,
+  //     value: i._id,
+  //   });
+  // });
   const img = [];
   imgState.forEach((i) => {
     img.push({
@@ -69,10 +67,15 @@ const Addproduct = () => {
     });
   });
 
+  // useEffect(() => {
+  //   // formik.values.color = color ? color : " ";
+  //   formik.values.images = img;
+  // }, [img]);
+
   useEffect(() => {
-    formik.values.color = color ? color : " ";
-    formik.values.images = img;
-  }, [color, img]);
+    formik.values.images = images;
+  }, [images]);
+
   const formik = useFormik({
     initialValues: {
       title: "",
@@ -86,19 +89,41 @@ const Addproduct = () => {
       images: "",
     },
     validationSchema: schema,
-    onSubmit: (values) => {
-      dispatch(createProduct(values));
-      formik.resetForm();
-      setColor(null);
-      setTimeout(() => {
-        dispatch(resetState());
-      }, 3000);
+    onSubmit: async (values) => {
+      if (images.length > 0) {
+        try {
+          // Upload images
+          const uploadResponse = await dispatch(uploadImg(images));
+          const uploadedImages = uploadResponse.payload; // Assuming the payload contains the uploaded images
+
+          // Set the uploaded images in the form values
+          values.images = uploadedImages;
+
+          // Dispatch createProduct action
+          await dispatch(createProduct(values));
+
+          // Reset form
+          formik.resetForm();
+
+          // Reset state after 1 seconds
+          setTimeout(() => {
+            dispatch(resetState());
+          }, 1000);
+          setImages([]);
+
+          toast.success("Product Added Successfully!");
+        } catch (error) {
+          toast.error("Something Went Wrong!");
+        }
+      } else {
+        toast.error("Please upload at least one image");
+      }
     },
   });
-  const handleColors = (e) => {
-    setColor(e);
-    console.log(color);
-  };
+  // const handleColors = (e) => {
+  //   setColor(e);
+  //   console.log(color);
+  // };
   return (
     <div>
       <h3 className="mb-4 title">Add Product</h3>
@@ -199,18 +224,18 @@ const Addproduct = () => {
             {formik.touched.tags && formik.errors.tags}
           </div>
 
-          <Select
+          {/* <Select
             mode="multiple"
             allowClear
             className="w-100"
             placeholder="Select colors"
-            defaultValue={color}
-            onChange={(i) => handleColors(i)}
-            options={coloropt}
+            // defaultValue={color}
+            // onChange={(i) => handleColors(i)}
+            // options={coloropt}
           />
           <div className="error">
             {formik.touched.color && formik.errors.color}
-          </div>
+          </div> */}
           <CustomInput
             type="number"
             label="Enter Product Quantity"
@@ -224,7 +249,10 @@ const Addproduct = () => {
           </div>
           <div className="bg-white border-1 p-5 text-center">
             <Dropzone
-              onDrop={(acceptedFiles) => dispatch(uploadImg(acceptedFiles))}
+              onDrop={(acceptedFiles) => {
+                setImages([...images, ...acceptedFiles]);
+                dispatch(uploadImg(acceptedFiles));
+              }}
             >
               {({ getRootProps, getInputProps }) => (
                 <section>
@@ -239,19 +267,26 @@ const Addproduct = () => {
             </Dropzone>
           </div>
           <div className="showimages d-flex flex-wrap gap-3">
-            {imgState?.map((i, j) => {
-              return (
-                <div className=" position-relative" key={j}>
-                  <button
-                    type="button"
-                    onClick={() => dispatch(delImg(i.public_id))}
-                    className="btn-close position-absolute"
-                    style={{ top: "10px", right: "10px" }}
-                  ></button>
-                  <img src={i.url} alt="" width={200} height={200} />
-                </div>
-              );
-            })}
+            {images.map((file, index) => (
+              <div className="position-relative" key={index}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newImages = [...images];
+                    newImages.splice(index, 1);
+                    setImages(newImages);
+                  }}
+                  className="btn-close position-absolute"
+                  style={{ top: "10px", right: "10px" }}
+                ></button>
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt=""
+                  width={200}
+                  height={200}
+                />
+              </div>
+            ))}
           </div>
           <button
             className="btn btn-success border-0 rounded-3 my-5"

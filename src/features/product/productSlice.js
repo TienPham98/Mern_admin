@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, createAction } from "@reduxjs/toolkit";
+import {createSlice, createAsyncThunk, createAction} from "@reduxjs/toolkit";
 import productService from "./productService";
 
 export const getProducts = createAsyncThunk(
@@ -26,7 +26,7 @@ export const getAProduct = createAsyncThunk(
   "product/get-product",
   async (id, thunkAPI) => {
     try {
-      return await productService.getProducts(id);
+      return await productService.getProduct(id);
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
     }

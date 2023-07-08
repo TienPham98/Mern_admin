@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Table } from "antd";
-import { BiEdit } from "react-icons/bi";
-import { AiFillDelete } from "react-icons/ai";
-import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import React, {useEffect, useState} from "react";
+import {Table} from "antd";
+import {BiEdit} from "react-icons/bi";
+import {AiFillDelete} from "react-icons/ai";
+import {Link} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
 import {
   deleteABrand,
   getBrands,
@@ -39,11 +39,13 @@ const Brandlist = () => {
     setOpen(false);
   };
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(resetState());
-    dispatch(getBrands());
-  }, []);
+
   const brandState = useSelector((state) => state.brand.brands);
+
+  useEffect(() => {
+    dispatch(getBrands());
+  }, [brandState]);
+
   const data1 = [];
   for (let i = 0; i < brandState.length; i++) {
     data1.push({
@@ -69,11 +71,7 @@ const Brandlist = () => {
   }
   const deleteBrand = (e) => {
     dispatch(deleteABrand(e));
-
     setOpen(false);
-    setTimeout(() => {
-      dispatch(getBrands());
-    }, 100);
   };
   return (
     <div>

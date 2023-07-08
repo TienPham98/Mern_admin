@@ -1,21 +1,21 @@
-import { React, useEffect, useMemo } from "react";
+import {React, useEffect, useMemo} from "react";
 import CustomInput from "../components/CustomInput";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Dropzone from "react-dropzone";
-import { delImg, uploadImg } from "../features/upload/uploadSlice";
-import { toast } from "react-toastify";
+import {delImg, uploadImg} from "../features/upload/uploadSlice";
+import {toast} from "react-toastify";
 import * as yup from "yup";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { useFormik } from "formik";
+import {useLocation, useNavigate} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
+import {useFormik} from "formik";
 import {
   createBlogs,
   getABlog,
   resetState,
   updateABlog,
 } from "../features/blogs/blogSlice";
-import { getCategories } from "../features/bcategory/bcategorySlice";
+import {getCategories} from "../features/bcategory/bcategorySlice";
 
 let schema = yup.object().shape({
   title: yup.string().required("Title is Required"),
@@ -89,7 +89,7 @@ const Addblog = () => {
     validationSchema: schema,
     onSubmit: (values) => {
       if (getBlogId !== undefined) {
-        const data = { id: getBlogId, blogData: values };
+        const data = {id: getBlogId, blogData: values};
         dispatch(updateABlog(data));
         dispatch(resetState());
       } else {
@@ -160,7 +160,7 @@ const Addblog = () => {
             <Dropzone
               onDrop={(acceptedFiles) => dispatch(uploadImg(acceptedFiles))}
             >
-              {({ getRootProps, getInputProps }) => (
+              {({getRootProps, getInputProps}) => (
                 <section>
                   <div {...getRootProps()}>
                     <input {...getInputProps()} />
@@ -180,7 +180,7 @@ const Addblog = () => {
                     type="button"
                     onClick={() => dispatch(delImg(i.public_id))}
                     className="btn-close position-absolute"
-                    style={{ top: "10px", right: "10px" }}
+                    style={{top: "10px", right: "10px"}}
                   ></button>
                   <img src={i.url} alt="" width={200} height={200} />
                 </div>

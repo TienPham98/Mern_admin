@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Table } from "antd";
-import { BiEdit } from "react-icons/bi";
-import { AiFillDelete } from "react-icons/ai";
-import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Table} from "antd";
+import {BiEdit} from "react-icons/bi";
+import {AiFillDelete} from "react-icons/ai";
+import {useDispatch, useSelector} from "react-redux";
+import {Link} from "react-router-dom";
 import {
   deleteAProductCategory,
   getCategories,
@@ -40,11 +40,13 @@ const Categorylist = () => {
     setOpen(false);
   };
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(resetState());
-    dispatch(getCategories());
-  }, []);
+
   const pCatStat = useSelector((state) => state.pCategory.pCategories);
+
+  useEffect(() => {
+    dispatch(getCategories());
+  }, [pCatStat]);
+
   const data1 = [];
   for (let i = 0; i < pCatStat.length; i++) {
     data1.push({
